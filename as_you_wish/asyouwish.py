@@ -1,6 +1,5 @@
 import configparser
 
-
 def get_type_str(type):
     if type == str:
         return "string"
@@ -19,7 +18,10 @@ def get_type_str(type):
 
 
 class ConfigValue:
-
+    """
+    Represents the value stored in a certain key. Keeps track of the type of the data, the data itself and the comment associated with the key.
+    It also checks the data to make sure it fits the datatype.
+    """
     def __init__(self, data_type, data, comment: str):
         if not isinstance(data, data_type):
             raise RuntimeError("The data doesn't match the type")
@@ -48,7 +50,9 @@ class ConfigValue:
 
 
 class Config:
-
+    """
+    The config class represents a set of options and values and can be used to load settigns from files.
+    """
     def __init__(self):
         self.values = {}
 
