@@ -5,3 +5,4 @@ __pycache__/
 # build system files
 dist/
 .upm/
+.breakpoints
