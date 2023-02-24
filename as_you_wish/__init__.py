@@ -1,0 +1,1 @@
+from .asyouwish import Config, ConfigValue
