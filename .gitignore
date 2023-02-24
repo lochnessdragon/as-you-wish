@@ -1,0 +1,6 @@
+# python specific file
+venv/
+__pycache__/
+
+# build system files
+dist/
