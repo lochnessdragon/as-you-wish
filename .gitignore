@@ -6,3 +6,6 @@ __pycache__/
 dist/
 .upm/
 .breakpoints
+
+# documentation files
+generated_docs/

@@ -18,9 +18,17 @@ def get_type_str(type):
 
 
 class ConfigValue:
-    """
-    Represents the value stored in a certain key. Keeps track of the type of the data, the data itself and the comment associated with the key.
+    """Represents the value stored in a certain key. Keeps track of the type of the data, the data itself and the comment associated with the key.
     It also checks the data to make sure it fits the datatype.
+
+    :param data_type: The data type of data
+    :type data_type: type
+
+    :param data: The data stored by this ConfigValue
+    :type data: Any
+
+    :param comment: The documentation for this value
+    :type comment: str
     """
     def __init__(self, data_type, data, comment: str):
         if not isinstance(data, data_type):
@@ -38,7 +46,7 @@ class ConfigValue:
         if not isinstance(input, self.data_type):
             raise TypeError(f"Wrong type provided: {type(input)}. Expected: {self.data_type}")
         self._data = input
-    
+
     def __repr__(self):
         return f"ConfigVal[type={repr(self.data_type)}, data={repr(self.data)}, comment={repr(self.comment)}]"
 
@@ -51,12 +59,36 @@ class ConfigValue:
 
 class Config:
     """
-    The config class represents a set of options and values and can be used to load settigns from files.
+    The config class represents a set of options and values and can be used to load settings from files.
     """
     def __init__(self):
+        """Constructs a new Config"""
         self.values = {}
 
     def define(self, key, default_value, comment=""):
+        """Creates a new option
+
+        This is used to set a new k,v pair for an option.
+        You can also chain these methods like so:
+
+        .. code-block:: python
+        
+            config.define('westley.actor', 'Cary Elwes').define('westley.ressurect_count', 1)
+
+        :param key: A unique identifier that refers to the value, used to retrieve the value in the get() method
+        :type key: str
+
+        :param default_value: The default value for this setting. Used to get the type that the option should be and it is used to create a setting in the options file when there isn't one.
+        :type default_value: Any
+
+        :param comment: A descriptive message to help users figure out what each setting does, defaults to ''
+        :type comment: str, optional
+
+        :raises TypeError: If the key provided is a subsection of a previously set key, a type error will be raised
+
+        :return: self
+        :rtype: :class:`as_you_wish.Config`
+        """
         default_value_type = type(default_value)
 
         sections = key.split(".")
@@ -68,7 +100,7 @@ class Config:
                     # the table doesn't exist yet, create it
                     head[sections[i]] = {}
                 elif not type(head[sections[i]]) is dict:
-                    raise RuntimeError("table not found")
+                    raise TypeError("The key provided points to a key instead of a table")
 
                 head = head[sections[i]]
             else:
@@ -78,7 +110,14 @@ class Config:
 
         return self
 
-    def load(self, filename):
+    def load(self, filename: str):
+        """Attempts to load a configuration from a specified file.
+
+        This function will also create the file if it doesn't exists already and it will update the file with any options that may not be defined.
+
+        :param filename: The filename to load the config from.
+        :type filename: str
+        """
         try:
             parser = configparser.ConfigParser()
             with open(filename, 'r') as fp:
@@ -87,17 +126,17 @@ class Config:
             missing_section = False
             missing_value = False
             wrong_type = False
-            
+
             for section in self.get_sections(self.values):
                 if not section in parser.sections():
                     print(f"We are missing section: {section}")
-                    missing_section = True 
+                    missing_section = True
                     continue
-                
+
                 for key in self.get_keys(section):
                     if not parser.has_option(section, key):
                         print(f"We are missing key: {key}")
-                        missing_value = True 
+                        missing_value = True
                         continue
                     # grab ConfigValue
                     section_parts = section.split('.')
@@ -105,10 +144,10 @@ class Config:
                     for part in section_parts:
                         head = head[part]
                     config_val = head[key]
-                        
+
                     value_str = parser[section][key]
                     if config_val.data_type == str:
-                        config_val.data = value_str 
+                        config_val.data = value_str
                     else:
                         try:
                             converted_value = eval(value_str, {"__builtins__":None})
@@ -116,7 +155,7 @@ class Config:
                         except:
                             wrong_type = True
                             print(f"Wrong type found when parsing {key} in {section}. Found: {type(coverted_value)} Expected: {config_val.data_type}")
-                    
+
                     # set ConfigValue
                     head = self.values
                     for i in range(len(section_parts)):
@@ -164,8 +203,13 @@ class Config:
                 keys.append(key)
 
         return keys
-    
+
     def save(self, filename):
+        """Saves the configuration to a specific file. Mostly used internally to fix broken configs, but can be used externally to allow users to update settings either through a file or another interface.
+
+        :param filename: The file to save the config to.
+        :type filename: str
+        """
         parser = configparser.ConfigParser(allow_no_value=True)
         # alphabetical sections
         added_sections = self.get_sections(self.values)
@@ -187,8 +231,16 @@ class Config:
         # write file
         with open(filename, 'w') as fp:
             parser.write(fp)
-            
+
     def get(self, key):
+        """Returns the value specificied by a key.
+
+        :param key: The lookup key (unique identifier)
+        :type key: str
+
+        :return: The value associated with the key. Please remember which keys are associated with which data types.
+        :rtype: Any
+        """
         sections = key.split('.')
         head = self.values
         for i in range(len(sections)):
@@ -238,20 +290,3 @@ class Config:
     def __str__(self):
         formatted_str = "Config:\n" + self.recursive_str(self.values)
         return formatted_str
-
-
-# config = configparser.ConfigParser()
-# config['youtube'] = {'api_key': 'YOUR_API_KEY_HERE',
-#                      'api_auth_token': 'YOUR_API_AUTH_TOKEN_HERE'}
-
-# config['errors'] = {'email_address' : 'YOUR_EMAIL_ADDRESS'}
-
-# config['banner'] = {'bg_color': (0, 0, 0), 'fg_color': (255, 255, 255), 'secondary_color': (126, 167, 54)}
-
-# with open('banner.ini', 'w') as configfile:
-#     config.write(configfile)
-
-# config.read('banner.ini')
-# for section in config.sections():
-#     print("Section: {section}")
-#     for key in config[section]

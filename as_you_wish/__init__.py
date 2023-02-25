@@ -1,1 +1,1 @@
-from .asyouwish import Config, ConfigValue
+from .as_you_wish import Config, ConfigValue
