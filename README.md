@@ -24,7 +24,7 @@ settings.load('settings.ini')
 print(f"API_KEY={settings.get('service.api_key')}")
 ```
 
-Also check out the [docs]() and [tests]() for more api usage.
+Also check out the [docs](https://lochnessdragon.github.io/as-you-wish/) and [tests](https://github.com/lochnessdragon/as-you-wish/blob/main/tests/test_as_you_wish.py) for more api usage.
 
 ## Contributing
 We'd love the help. Unfortunately we don't have a Contributing.md document yet, but if you find an issue/bug/feature request, feel free to submit it with a PR or under the Issues tab.
